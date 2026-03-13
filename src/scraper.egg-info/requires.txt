@@ -1,5 +1,5 @@
 beautifulsoup4<5,>=4.12
-httpx<0.29,>=0.28
+httpx[http2]<0.29,>=0.28
 lxml<7,>=5
 pydantic<3,>=2.11
 PyYAML<7,>=6

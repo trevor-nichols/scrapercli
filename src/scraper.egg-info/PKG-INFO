@@ -17,7 +17,7 @@ Requires-Python: >=3.11
 Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: beautifulsoup4<5,>=4.12
-Requires-Dist: httpx<0.29,>=0.28
+Requires-Dist: httpx[http2]<0.29,>=0.28
 Requires-Dist: lxml<7,>=5
 Requires-Dist: pydantic<3,>=2.11
 Requires-Dist: PyYAML<7,>=6
