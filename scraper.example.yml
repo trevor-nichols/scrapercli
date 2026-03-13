@@ -1,4 +1,4 @@
-user_agent: staged-scraper/0.1.0 (+https://example.invalid/staged-scraper)
+user_agent: /0.1.0 (+https://example.invalid/)
 timeout_seconds: 25.0
 default_headers: {}
 rate_limit:

@@ -3,7 +3,7 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "staged-scraper"
+name = ""
 version = "0.1.0"
 description = "HTTP-first staged website-to-Markdown scraper with auditable escalation and deterministic Markdown output."
 readme = "README.md"
@@ -42,7 +42,7 @@ dev = [
 ]
 
 [project.scripts]
-staged-scraper = "staged_scraper.cli:app"
+ = "staged_scraper.cli:app"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

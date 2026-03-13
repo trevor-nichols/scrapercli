@@ -16,7 +16,7 @@ from .version import __version__
 
 
 app = typer.Typer(
-    name="staged-scraper",
+    name="",
     help="HTTP-first staged website-to-Markdown scraper with auditable escalation.",
     no_args_is_help=True,
     pretty_exceptions_enable=False,

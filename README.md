@@ -1,6 +1,6 @@
-# staged-scraper
+# scraper cli
 
-`staged-scraper` is an HTTP-first, staged extraction CLI that converts websites into deterministic, clean Markdown while preserving raw source artifacts and recording every extraction decision.
+`scraper` is an HTTP-first, staged extraction CLI that converts websites into deterministic, clean Markdown while preserving raw source artifacts and recording every extraction decision.
 
 It follows a strict escalation model:
 
@@ -53,31 +53,31 @@ playwright install chromium
 ### Scrape a single page
 
 ```bash
-staged-scraper scrape https://example.com/docs/getting-started --output-dir ./output
+ scrape https://example.com/docs/getting-started --output-dir ./output
 ```
 
 ### Emit the Markdown to stdout as well
 
 ```bash
-staged-scraper scrape https://example.com/docs/getting-started --stdout
+ scrape https://example.com/docs/getting-started --stdout
 ```
 
 ### Inspect discovery without full extraction
 
 ```bash
-staged-scraper inspect https://example.com/docs/getting-started
+ inspect https://example.com/docs/getting-started
 ```
 
 ### Crawl a section
 
 ```bash
-staged-scraper crawl https://example.com/docs --scope section --max-pages 50 --output-dir ./output
+ crawl https://example.com/docs --scope section --max-pages 50 --output-dir ./output
 ```
 
 ### Generate a starter config
 
 ```bash
-staged-scraper init-config ./scraper.yml
+ init-config ./scraper.yml
 ```
 
 ## Config
@@ -85,13 +85,13 @@ staged-scraper init-config ./scraper.yml
 The CLI accepts a YAML config file:
 
 ```bash
-staged-scraper scrape https://example.com --config ./scraper.yml
+ scrape https://example.com --config ./scraper.yml
 ```
 
 Starter file:
 
 ```yaml
-user_agent: staged-scraper/0.1.0 (+https://example.invalid/staged-scraper)
+user_agent: /0.1.0 (+https://example.invalid/)
 timeout_seconds: 25.0
 rate_limit:
   requests_per_second: 1.0

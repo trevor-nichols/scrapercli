@@ -116,7 +116,7 @@ class QualityThresholds(BaseModel):
 
 
 class ScraperConfig(BaseModel):
-    user_agent: str = "staged-scraper/0.1.0 (+https://example.invalid/staged-scraper)"
+    user_agent: str = "/0.1.0 (+https://example.invalid/)"
     timeout_seconds: float = 25.0
     default_headers: dict[str, str] = Field(default_factory=dict)
     rate_limit: RateLimitConfig = Field(default_factory=RateLimitConfig)
