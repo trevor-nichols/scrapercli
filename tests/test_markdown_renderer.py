@@ -1,4 +1,4 @@
-from staged_scraper.html.markdown import MarkdownRenderer
+from scraper.html.markdown import MarkdownRenderer
 
 
 HTML = """

@@ -1,2 +1,0 @@
-[console_scripts]
- = staged_scraper.cli:app

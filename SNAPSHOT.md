@@ -1,6 +1,6 @@
 <project_structure>
 ├── src/  # Source code root
-│   └── staged_scraper/  # Main package directory
+│   └── scraper/  # Main package directory
 │       ├── adapters/  # Framework-specific HTML parsing logic
 │       │   ├── __init__.py  # Adapter registry exports
 │       │   ├── base.py  # Base class for framework adapters

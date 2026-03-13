@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from staged_scraper.html.metadata import MetadataExtractor
-from staged_scraper.html.repetition import RepetitionIndex
-from staged_scraper.extractors.html_static import StaticHTMLExtractor
-from staged_scraper.models import DiscoveryBundle, FetchSnapshot, Scope
-from staged_scraper.observability.recorder import DecisionRecorder
+from scraper.html.metadata import MetadataExtractor
+from scraper.html.repetition import RepetitionIndex
+from scraper.extractors.html_static import StaticHTMLExtractor
+from scraper.models import DiscoveryBundle, FetchSnapshot, Scope
+from scraper.observability.recorder import DecisionRecorder
 
 
 def test_static_html_extractor_prefers_article_and_prunes_chrome(tmp_path) -> None:

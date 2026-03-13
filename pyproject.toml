@@ -42,7 +42,7 @@ dev = [
 ]
 
 [project.scripts]
- = "staged_scraper.cli:app"
+ = "scraper.cli:app"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

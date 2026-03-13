@@ -1,6 +1,6 @@
-from staged_scraper.discovery.sitemap import SitemapDiscovery
-from staged_scraper.models import FetchSnapshot
-from staged_scraper.observability.recorder import DecisionRecorder
+from scraper.discovery.sitemap import SitemapDiscovery
+from scraper.models import FetchSnapshot
+from scraper.observability.recorder import DecisionRecorder
 
 
 class StubHttpClient:

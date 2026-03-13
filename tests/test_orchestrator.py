@@ -1,22 +1,22 @@
 from pathlib import Path
 
-from staged_scraper.extractors.html_static import StaticHTMLExtractor
-from staged_scraper.extractors.publisher_markdown import PublisherMarkdownExtractor
-from staged_scraper.extractors.structured import StructuredDataExtractor
-from staged_scraper.html.repetition import RepetitionIndex
-from staged_scraper.models import DiscoveryBundle, FetchSnapshot, Scope
-from staged_scraper.observability.recorder import DecisionRecorder
-from staged_scraper.observability.store import ArtifactStore
-from staged_scraper.pipeline.orchestrator import ScrapeOrchestrator
-from staged_scraper.pipeline.quality import QualityAssessor
-from staged_scraper.models import QualityThresholds
+from scraper.extractors.html_static import StaticHTMLExtractor
+from scraper.extractors.publisher_markdown import PublisherMarkdownExtractor
+from scraper.extractors.structured import StructuredDataExtractor
+from scraper.html.repetition import RepetitionIndex
+from scraper.models import DiscoveryBundle, FetchSnapshot, Scope
+from scraper.observability.recorder import DecisionRecorder
+from scraper.observability.store import ArtifactStore
+from scraper.pipeline.orchestrator import ScrapeOrchestrator
+from scraper.pipeline.quality import QualityAssessor
+from scraper.models import QualityThresholds
 
 
 class NullExtractor:
     mode_name = "null"
 
     def run(self, bundle):
-        from staged_scraper.models import ExtractionAttempt, ExtractionMode
+        from scraper.models import ExtractionAttempt, ExtractionMode
 
         mapping = {
             "publisher": ExtractionMode.PUBLISHER_MARKDOWN,

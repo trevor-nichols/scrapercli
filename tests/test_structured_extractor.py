@@ -1,6 +1,6 @@
-from staged_scraper.extractors.structured import StructuredDataExtractor
-from staged_scraper.models import CandidateKind, CandidateSource, DiscoveryBundle, FetchSnapshot, Scope
-from staged_scraper.observability.recorder import DecisionRecorder
+from scraper.extractors.structured import StructuredDataExtractor
+from scraper.models import CandidateKind, CandidateSource, DiscoveryBundle, FetchSnapshot, Scope
+from scraper.observability.recorder import DecisionRecorder
 
 
 PAYLOAD = {

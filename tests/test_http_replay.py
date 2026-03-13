@@ -1,9 +1,9 @@
 import json
 
-from staged_scraper.extractors.http_replay import HTTPReplayExtractor
-from staged_scraper.models import CandidateKind, CandidateSource, DiscoveryBundle, FetchSnapshot, Scope, ScraperConfig
-from staged_scraper.observability.recorder import DecisionRecorder
-from staged_scraper.observability.store import ArtifactStore
+from scraper.extractors.http_replay import HTTPReplayExtractor
+from scraper.models import CandidateKind, CandidateSource, DiscoveryBundle, FetchSnapshot, Scope, ScraperConfig
+from scraper.observability.recorder import DecisionRecorder
+from scraper.observability.store import ArtifactStore
 
 
 class StubHttpClient:

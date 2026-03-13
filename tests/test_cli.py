@@ -2,8 +2,8 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from staged_scraper.cli import app
-from staged_scraper.version import __version__
+from scraper.cli import app
+from scraper.version import __version__
 
 
 runner = CliRunner()

@@ -1,5 +1,5 @@
-from staged_scraper.discovery.llms import LLMSDiscovery, score_markdown_candidate
-from staged_scraper.models import CandidateKind, FetchSnapshot, Scope
+from scraper.discovery.llms import LLMSDiscovery, score_markdown_candidate
+from scraper.models import CandidateKind, FetchSnapshot, Scope
 
 
 def test_llms_snapshot_parses_markdown_and_llms_full_candidates() -> None:

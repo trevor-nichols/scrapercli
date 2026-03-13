@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from staged_scraper.discovery.framework import FrameworkDetectorRegistry
-from staged_scraper.models import FrameworkFamily
+from scraper.discovery.framework import FrameworkDetectorRegistry
+from scraper.models import FrameworkFamily
 
 
 def test_framework_detector_identifies_nextjs() -> None:
