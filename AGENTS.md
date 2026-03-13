@@ -5,6 +5,62 @@ You are working a the scraper cli, a web scraper cli tool that scrapes urls to a
 - Throughout the codebase you will see SNAPSHOT.md files. These files contain architectural documentation using directory trees with inline comments to help you understand and navigate the project efficiently. You can update these by running `just update-snapshots` (preserves comments, but does not add comments). You can identify all SNAPSHOT.md files in repo by running `just locate-snapshots`.
 - Keep this AGENTS.md file up-to-date and update/edit for any significant changes.
 
+## Goal
+A robust scraper that converts websites into clean, well-structured Markdown documents while minimizing brittleness, unnecessary browser usage, and site-specific hacks.
+
+## Core idea
+The scraper should always prefer the most structured, least lossy source available. That means the system should not begin by scraping rendered HTML by default. It should first look for publisher-provided signals and machine-friendly sources, then progressively fall back to heavier extraction methods only when needed.
+
+## Efficiency principle
+Stay efficient until you cannot.
+
+The scraper should default to the cheapest reliable extraction path and escalate only when lower-cost methods fail or produce incomplete results. 
+
+In practice, this means:
+* Do not start with Playwright by default
+* Prefer llms.txt, linked Markdown, structured responses, and static HTML first
+* Treat browser automation as an escalation step for JavaScript-heavy, interaction-gated, or otherwise incomplete pages
+* Record why escalation happened so browser usage stays intentional and measurable
+
+## First principle
+Before doing any deep extraction work, the scraper should check whether the site exposes an llms.txt file.
+
+This should usually mean:
+* Checking /{root}/llms.txt for site-wide guidance
+* Checking relevant section-level roots such as /docs/llms.txt when scraping a subsection
+* Looking for linked Markdown resources, including page-level .md variants and any llms-full.txt style consolidated exports when available If llms.txt exists and is well-formed, it should be treated as a high-priority discovery surface because it may point directly to the cleanest Markdown representations of the content.
+
+## Extraction priority order
+ The scraper should resolve content in this order:
+
+ 1. **Publisher-provided LLM-friendly documents**
+    * llms.txt
+    * llms-full.txt
+    * linked .md documents 
+ 
+ 2. **Direct structured data**
+    * JSON endpoints discovered from page requests
+    * GraphQL responses
+    * JSON-LD
+    * embedded hydration payloads such as Next.js or similar framework data blobs
+ 
+ 3. **Static HTML extraction**
+    * server-rendered HTML
+    * article bodies
+    * documentation content containers
+    * semantic markup like article, main, headings, code blocks, tables, lists
+ 
+ 4. **Browser-assisted extraction**
+    * pages requiring interaction
+    * lazy-loaded content
+    * authentication-gated flows
+    * infinite scroll, tabs, expanders, or client-only rendering
+ 
+ 5. **Last-resort DOM reconstruction**
+    * visual DOM cleanup
+    * readability-style extraction
+    * site-specific adapter rules
+
 <project_structure>
 ├── src/  # Source code root
 │   └── scraper/  # Main package directory
