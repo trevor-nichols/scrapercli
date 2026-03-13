@@ -1,0 +1,2 @@
+[console_scripts]
+staged-scraper = staged_scraper.cli:app

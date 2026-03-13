@@ -1,0 +1,13 @@
+beautifulsoup4<5,>=4.12
+httpx<0.29,>=0.28
+lxml<7,>=5
+pydantic<3,>=2.11
+PyYAML<7,>=6
+rich<15,>=14
+typer<0.25,>=0.21
+
+[browser]
+playwright<2,>=1.58
+
+[dev]
+pytest<10,>=8

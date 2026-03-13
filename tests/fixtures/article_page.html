@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Example Article</title>
+  <meta name="description" content="An example article used for extraction tests." />
+  <link rel="canonical" href="https://example.com/blog/example-article" />
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/docs">Docs</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/login">Login</a>
+    </nav>
+  </header>
+  <main>
+    <article>
+      <header>
+        <h1>Example Article</h1>
+        <p>By Test Author</p>
+        <time datetime="2026-02-01">February 1, 2026</time>
+      </header>
+
+      <p>
+        This article exists to validate the static HTML extraction path. It contains enough prose to pass the default
+        quality gates, and it places the meaningful content in a semantic article container rather than in a page shell.
+        The paragraphs are deliberately long enough to exercise the density-based scorer and the boilerplate pruning logic.
+      </p>
+
+      <p>
+        The second paragraph explains why the tool should stay on HTTP when the body content is complete. It also verifies
+        that navigation, account prompts, and global chrome are not promoted into the Markdown output. The renderer should
+        keep headings, prose, code, tables, and links while removing repeated interface fragments.
+      </p>
+
+      <section>
+        <h2>Code sample</h2>
+        <pre><code class="language-python">def greet(name: str) -> str:
+    return f"hello {name}"</code></pre>
+      </section>
+
+      <section>
+        <h2>Comparison</h2>
+        <p>
+          Below is a simple table and a relative link. The output should preserve the table structure and rewrite the link
+          against the canonical page URL so downstream consumers receive a stable absolute target.
+        </p>
+        <table>
+          <tr><th>Mode</th><th>Cost</th></tr>
+          <tr><td>HTTP</td><td>Low</td></tr>
+          <tr><td>Browser</td><td>High</td></tr>
+        </table>
+        <p>Read the <a href="/blog/follow-up">follow-up article</a> for more detail.</p>
+      </section>
+
+      <footer>
+        <p>Tags: scraping, markdown, observability</p>
+      </footer>
+    </article>
+  </main>
+  <aside>
+    <a href="/related-1">Related 1</a>
+    <a href="/related-2">Related 2</a>
+    <a href="/related-3">Related 3</a>
+  </aside>
+  <footer>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="/cookies">Cookies</a>
+  </footer>
+</body>
+</html>

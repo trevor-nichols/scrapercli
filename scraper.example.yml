@@ -1,0 +1,45 @@
+user_agent: staged-scraper/0.1.0 (+https://example.invalid/staged-scraper)
+timeout_seconds: 25.0
+default_headers: {}
+rate_limit:
+  requests_per_second: 1.0
+  burst: 1
+retry:
+  attempts: 3
+  backoff_seconds: 0.75
+  backoff_multiplier: 2.0
+  retryable_status_codes:
+  - 429
+  - 500
+  - 502
+  - 503
+  - 504
+browser:
+  enabled: false
+  timeout_ms: 30000
+  wait_until: networkidle
+  auto_interact: false
+  max_auto_clicks: 8
+  headless: true
+output:
+  root_dir: output
+  frontmatter: true
+  metadata_sidecar: true
+  raw_sources: true
+  deterministic_filenames: true
+crawl:
+  scope: page
+  max_pages: 50
+  concurrency: 1
+  same_host_only: true
+  respect_robots: true
+  follow_sitemaps: true
+  max_depth: 4
+quality:
+  min_chars_normal_page: 600
+  thin_page_chars: 300
+  min_body_score: 25.0
+  min_body_minus_chrome: 10.0
+  min_paragraphs: 3
+cookies: {}
+proxies: {}
