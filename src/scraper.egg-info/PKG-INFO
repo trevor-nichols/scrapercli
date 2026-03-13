@@ -1,0 +1,248 @@
+Metadata-Version: 2.4
+Name: scraper
+Version: 0.1.0
+Summary: HTTP-first staged website-to-Markdown scraper with auditable escalation and deterministic Markdown output.
+Author: OpenAI
+License: MIT
+Keywords: scraping,markdown,crawler,llms.txt,playwright
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Text Processing :: Markup
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: beautifulsoup4<5,>=4.12
+Requires-Dist: httpx<0.29,>=0.28
+Requires-Dist: lxml<7,>=5
+Requires-Dist: pydantic<3,>=2.11
+Requires-Dist: PyYAML<7,>=6
+Requires-Dist: rich<15,>=14
+Requires-Dist: typer<0.25,>=0.21
+Provides-Extra: browser
+Requires-Dist: playwright<2,>=1.58; extra == "browser"
+Provides-Extra: dev
+Requires-Dist: pytest<10,>=8; extra == "dev"
+Dynamic: license-file
+
+# scraper cli
+
+`scraper` is an HTTP-first, staged extraction CLI that converts websites into deterministic, clean Markdown while preserving raw source artifacts and recording every extraction decision.
+
+It follows a strict escalation model:
+
+1. Publisher-provided LLM-friendly documents (`llms.txt`, `llms-full.txt`, linked Markdown, Markdown twins)
+2. Structured data discovered in HTTP responses (JSON-LD, hydration payloads, inline state)
+3. Static HTML extraction with landmark-aware scoring and boilerplate pruning
+4. Direct HTTP replay of discovered API/GraphQL endpoints
+5. Browser-assisted discovery only when required
+6. Browser-resident DOM extraction as the final fallback
+
+## Why this tool exists
+
+Most scrapers start at the rendered DOM and stay there. This project does not.
+
+It prefers the least lossy, lowest-cost source first, keeps browser usage explicit and measurable, and produces Markdown suitable for both human reading and downstream LLM pipelines.
+
+## Key properties
+
+- HTTP-first acquisition
+- `llms.txt` and Markdown-first discovery
+- Structured-content preference over DOM scraping
+- Landmark-aware HTML pruning with body/chrome/metadata scoring
+- Cross-page repetition detection for boilerplate down-weighting
+- Conditional requests with `ETag` / `Last-Modified`
+- Raw-source retention for replay and debugging
+- JSONL decision logging for every fetch, attempt, and escalation
+- Deterministic frontmatter and Markdown normalization
+- Optional Playwright-based browser escalation
+- Extensible detector, adapter, and extractor registries
+
+## Installation
+
+### Core
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
+### Browser fallback support
+
+```bash
+pip install -e '.[browser]'
+playwright install chromium
+```
+
+## CLI
+
+### Scrape a single page
+
+```bash
+ scrape https://example.com/docs/getting-started --output-dir ./output
+```
+
+### Emit the Markdown to stdout as well
+
+```bash
+ scrape https://example.com/docs/getting-started --stdout
+```
+
+### Inspect discovery without full extraction
+
+```bash
+ inspect https://example.com/docs/getting-started
+```
+
+### Crawl a section
+
+```bash
+ crawl https://example.com/docs --scope section --max-pages 50 --output-dir ./output
+```
+
+### Generate a starter config
+
+```bash
+ init-config ./scraper.yml
+```
+
+## Config
+
+The CLI accepts a YAML config file:
+
+```bash
+ scrape https://example.com --config ./scraper.yml
+```
+
+Starter file:
+
+```yaml
+user_agent: /0.1.0 (+https://example.invalid/)
+timeout_seconds: 25.0
+rate_limit:
+  requests_per_second: 1.0
+  burst: 1
+retry:
+  attempts: 3
+  backoff_seconds: 0.75
+  backoff_multiplier: 2.0
+  retryable_status_codes: [429, 500, 502, 503, 504]
+browser:
+  enabled: false
+  timeout_ms: 30000
+  wait_until: networkidle
+  auto_interact: false
+  max_auto_clicks: 8
+  headless: true
+output:
+  root_dir: ./output
+  frontmatter: true
+  metadata_sidecar: true
+  raw_sources: true
+  deterministic_filenames: true
+crawl:
+  scope: page
+  max_pages: 50
+  concurrency: 1
+  same_host_only: true
+  respect_robots: true
+  follow_sitemaps: true
+  max_depth: 4
+quality:
+  min_chars_normal_page: 600
+  thin_page_chars: 300
+  min_body_score: 25.0
+  min_body_minus_chrome: 10.0
+  min_paragraphs: 3
+cookies: {}
+proxies: {}
+```
+
+## Output layout
+
+Each CLI run writes into a timestamped run directory under the configured output root:
+
+```text
+output/
+  20260311T000000Z/
+    raw/
+    markdown/
+    metadata/
+    state/
+      validators.json
+      repetition.json
+    logs/
+      decisions.jsonl
+    result.json
+    crawl_manifest.json
+    discovery_bundle.json
+```
+
+## Decision logging
+
+Every decision is written to `logs/decisions.jsonl`, including:
+
+- HTTP fetches and retry events
+- `llms.txt` probe hits/misses
+- escalation mode changes
+- extraction attempt outcomes
+
+This keeps browser usage and fallback behavior auditable.
+
+## Architecture overview
+
+### Discovery
+
+- URL normalization
+- `robots.txt` fetch and policy registration
+- `llms.txt` / `llms-full.txt` probing at root and section paths
+- target page fetch
+- metadata extraction
+- framework detection
+- Markdown twin probing
+- structured candidate discovery from scripts and page links
+
+### Extraction
+
+- `PublisherMarkdownExtractor`
+- `StructuredDataExtractor`
+- `StaticHTMLExtractor`
+- `HTTPReplayExtractor`
+- `BrowserDiscoveryExtractor`
+- `BrowserDOMExtractor`
+
+### HTML extraction model
+
+HTML extraction does not drop nodes by tag name alone.
+
+It computes three scores per candidate node:
+
+- body score
+- chrome score
+- metadata-preserve score
+
+The winning subtree is selected using semantic landmarks, text density, structure, link density, repeated-template detection, and metadata signals.
+
+## Extensibility points
+
+- `discovery/framework.py`: detector registry
+- `adapters/registry.py`: framework-aware adapter registry
+- `extractors/`: staged extraction implementations
+- `pipeline/orchestrator.py`: escalation control plane
+- `pipeline/quality.py`: quality gating and retry decisions
+
+## Tests
+
+```bash
+pytest
+```
+
+## Notes
+
+- Public-content retrieval only. Do not use this project for unsafe or unauthorized access.
+- Browser mode is intentionally optional and should remain rare in steady-state usage.

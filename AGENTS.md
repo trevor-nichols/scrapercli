@@ -1,5 +1,10 @@
 You are working a the scraper cli, a web scraper cli tool that scrapes urls to a markdown file.
 
+## Development Notes
+- Hold the implementation to production-grade standards: clean architecture, DRY, minimal coupling, clear module boundaries, predictable conventions and maintainable patterns.
+- Throughout the codebase you will see SNAPSHOT.md files. These files contain architectural documentation using directory trees with inline comments to help you understand and navigate the project efficiently. You can update these by running `just update-snapshots` (preserves comments, but does not add comments). You can identify all SNAPSHOT.md files in repo by running `just locate-snapshots`.
+- Keep this AGENTS.md file up-to-date and update/edit for any significant changes.
+
 <project_structure>
 ├── src/  # Source code root
 │   └── scraper/  # Main package directory
