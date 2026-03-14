@@ -1,10 +1,17 @@
 <project_structure>
+├── Justfile
+├── pyproject.toml  # Project metadata and dependencies
+├── scraper.example.yml  # Example YAML configuration for the scraper
 ├── src/  # Source code root
 │   └── scraper/  # Main package directory
+│       ├── __init__.py  # Package exports
+│       ├── __main__.py  # Entry point for module execution
 │       ├── adapters/  # Framework-specific HTML parsing logic
 │       │   ├── __init__.py  # Adapter registry exports
 │       │   ├── base.py  # Base class for framework adapters
 │       │   └── registry.py  # Registry mapping frameworks (Next.js, Docusaurus) to adapters
+│       ├── cli.py  # Command-line interface definitions (scrape, crawl, inspect)
+│       ├── config.py  # Configuration loading and merging logic
 │       ├── discovery/  # Mechanisms to discover content sources and APIs
 │       │   ├── __init__.py  # Discovery module exports
 │       │   ├── framework.py  # Detects frontend frameworks (e.g., Next.js, Astro) from HTML
@@ -30,27 +37,23 @@
 │       │   ├── cache.py  # Local cache for conditional requests (ETag, Last-Modified)
 │       │   ├── client.py  # Wrapped HTTPX client handling retries and rate limiting
 │       │   └── robots.py  # Parses and enforces robots.txt directives
+│       ├── models.py  # Pydantic data models for configuration, state, and outputs
 │       ├── observability/  # Logging, telemetry, and artifact storage
 │       │   ├── __init__.py  # Observability module exports
 │       │   ├── recorder.py  # Records extraction decisions and pipeline escalations
-│       │   └── store.py  # Saves raw responses, markdown, and metadata to disk
+│       │   └── store.py  # Persists markdown plus optional raw/metadata/state/log artifacts
 │       ├── pipeline/  # High-level scraping orchestration
 │       │   ├── __init__.py  # Pipeline module exports
 │       │   ├── crawler.py  # Coordinates crawling multiple pages from a root URL
 │       │   ├── orchestrator.py  # Stages extractors and escalates if quality thresholds fail
 │       │   └── quality.py  # Assesses the quality of extracted markdown (length, structure, chrome)
+│       ├── runtime.py  # Dependency injection factory initializing the scraping runtime
 │       ├── utils/  # General helper functions
 │       │   ├── __init__.py  # Utils module exports
 │       │   ├── dom.py  # BeautifulSoup instantiation helper
 │       │   ├── hashing.py  # SHA256 hashing utilities for strings and bytes
 │       │   ├── text.py  # Text normalization, heuristics, and feature extraction
 │       │   └── url.py  # URL parsing, normalization, and manipulation utilities
-│       ├── __init__.py  # Package exports
-│       ├── __main__.py  # Entry point for module execution
-│       ├── cli.py  # Command-line interface definitions (scrape, crawl, inspect)
-│       ├── config.py  # Configuration loading and merging logic
-│       ├── models.py  # Pydantic data models for configuration, state, and outputs
-│       ├── runtime.py  # Dependency injection factory initializing the scraping runtime
 │       └── version.py  # Package version definition
 ├── tests/  # Automated test suite
 │   ├── fixtures/  # Static test files
@@ -61,11 +64,10 @@
 │   ├── test_http_replay.py  # Tests for API endpoint replay extraction
 │   ├── test_llms.py  # Tests for parsing llms.txt discovery
 │   ├── test_markdown_renderer.py  # Tests for HTML-to-Markdown conversion
+│   ├── test_output_profile.py  # Tests for minimal/verbose artifact persistence behavior
 │   ├── test_orchestrator.py  # Tests for extraction escalation and pipeline logic
 │   ├── test_sitemap.py  # Tests for sitemap fetching and parsing
 │   ├── test_static_html_extractor.py  # Tests for static HTML structural scoring and extraction
 │   └── test_structured_extractor.py  # Tests for extracting inline JSON and state payloads
-├── pyproject.toml  # Project metadata and dependencies
-├── scraper.example.yml  # Example YAML configuration for the scraper
 └── uv.lock  # UV package manager dependency lockfile
 </project_structure>

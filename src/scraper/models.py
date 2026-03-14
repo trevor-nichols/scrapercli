@@ -59,6 +59,11 @@ class ContentKind(str, Enum):
     BLOCKS = "blocks"
 
 
+class OutputProfile(str, Enum):
+    MINIMAL = "minimal"
+    VERBOSE = "verbose"
+
+
 class DecisionEvent(BaseModel):
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     level: str = "info"
@@ -91,6 +96,7 @@ class BrowserConfig(BaseModel):
 
 class OutputConfig(BaseModel):
     root_dir: Path = Path("./output")
+    profile: OutputProfile = OutputProfile.MINIMAL
     frontmatter: bool = True
     metadata_sidecar: bool = True
     raw_sources: bool = True

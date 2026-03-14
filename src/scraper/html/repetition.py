@@ -13,12 +13,14 @@ from ..utils.text import normalize_whitespace
 
 
 class RepetitionIndex:
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path | None) -> None:
         self.path = path
         self.store_by_host: dict[str, RepetitionStore] = {}
         self._load()
 
     def _load(self) -> None:
+        if self.path is None:
+            return
         if not self.path.exists():
             return
         try:
@@ -31,6 +33,8 @@ class RepetitionIndex:
             self.store_by_host[host] = RepetitionStore.model_validate(payload)
 
     def save(self) -> None:
+        if self.path is None:
+            return
         payload = {host: store.model_dump(mode="python") for host, store in self.store_by_host.items()}
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")

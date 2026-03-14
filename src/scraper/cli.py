@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.table import Table
 
 from .config import DEFAULT_CONFIG, ConfigError, load_config
-from .models import DocumentResult, ExtractionAttempt, Scope
+from .models import CrawlManifest, DocumentResult, ExtractionAttempt, Scope
 from .runtime import RuntimeFactory
 from .version import __version__
 
@@ -31,6 +31,8 @@ def _build_config(
     output_dir: Path | None,
     browser_mode: str,
     auto_interact_mode: str,
+    output_profile_mode: str,
+    verbose_mode: bool,
     timeout_seconds: float | None,
     rate_limit: float | None,
     max_pages: int | None,
@@ -40,6 +42,10 @@ def _build_config(
         overrides.setdefault("browser", {})["enabled"] = browser_mode == "on"
     if auto_interact_mode != "auto":
         overrides.setdefault("browser", {})["auto_interact"] = auto_interact_mode == "on"
+    if output_profile_mode != "auto":
+        overrides.setdefault("output", {})["profile"] = output_profile_mode
+    if verbose_mode:
+        overrides.setdefault("output", {})["profile"] = "verbose"
     if timeout_seconds is not None:
         overrides["timeout_seconds"] = timeout_seconds
     if rate_limit is not None:
@@ -107,6 +113,31 @@ def _emit_json(payload: dict[str, Any]) -> None:
     console.print_json(json.dumps(payload, ensure_ascii=False, default=str))
 
 
+def _print_scrape_concise(result: DocumentResult) -> None:
+    if result.markdown_path is not None:
+        console.print(result.markdown_path)
+        return
+    if result.errors:
+        error_console.print("; ".join(result.errors))
+        return
+    error_console.print("No markdown generated.")
+
+
+def _print_crawl_concise(manifest: CrawlManifest) -> None:
+    has_markdown_paths = False
+    for entry in manifest.entries:
+        if entry.markdown_path:
+            has_markdown_paths = True
+            console.print(entry.markdown_path)
+    for entry in manifest.entries:
+        if entry.success:
+            continue
+        reason = "; ".join(entry.reasons) if entry.reasons else "crawl entry failed"
+        error_console.print(f"{entry.url}: {reason}")
+    if not has_markdown_paths and not manifest.entries:
+        error_console.print("No pages were crawled.")
+
+
 @app.command()
 def scrape(
     url: str = typer.Argument(..., help="Target page URL."),
@@ -115,6 +146,8 @@ def scrape(
     output_dir: Path | None = typer.Option(None, "--output-dir", file_okay=False, dir_okay=True, help="Output directory root."),
     browser: str = typer.Option("auto", "--browser", help="Browser mode: auto, on, off."),
     auto_interact: str = typer.Option("auto", "--auto-interact", help="Auto interaction mode: auto, on, off."),
+    output_profile: str = typer.Option("auto", "--output-profile", help="Output profile: auto, minimal, verbose."),
+    verbose: bool = typer.Option(False, "--verbose", help="Shortcut for --output-profile verbose."),
     timeout_seconds: float | None = typer.Option(None, "--timeout-seconds", min=1.0, help="HTTP timeout override."),
     rate_limit: float | None = typer.Option(None, "--rate-limit", min=0.0, help="Requests per second override."),
     stdout_markdown: bool = typer.Option(False, "--stdout", help="Print resulting Markdown to stdout."),
@@ -122,16 +155,21 @@ def scrape(
 ) -> None:
     browser = browser.lower().strip()
     auto_interact = auto_interact.lower().strip()
+    output_profile = output_profile.lower().strip()
     if browser not in {"auto", "on", "off"}:
         raise typer.BadParameter("--browser must be one of: auto, on, off")
     if auto_interact not in {"auto", "on", "off"}:
         raise typer.BadParameter("--auto-interact must be one of: auto, on, off")
+    if output_profile not in {"auto", "minimal", "verbose"}:
+        raise typer.BadParameter("--output-profile must be one of: auto, minimal, verbose")
 
     cfg, _ = _build_config(
         config_path=config,
         output_dir=output_dir,
         browser_mode=browser,
         auto_interact_mode=auto_interact,
+        output_profile_mode=output_profile,
+        verbose_mode=verbose,
         timeout_seconds=timeout_seconds,
         rate_limit=rate_limit,
         max_pages=None,
@@ -142,13 +180,18 @@ def scrape(
         result_path = runtime.artifacts.save_json_document("result.json", result.model_dump(mode="json"))
         if json_output:
             payload = result.model_dump(mode="json")
-            payload["summary_path"] = str(result_path)
+            if result_path is not None:
+                payload["summary_path"] = str(result_path)
             _emit_json(payload)
         else:
-            _print_result_summary(result)
-            if result.attempts:
-                _print_attempts(result.attempts)
-            console.print(f"Result JSON: {result_path}")
+            if verbose:
+                _print_result_summary(result)
+                if result.attempts:
+                    _print_attempts(result.attempts)
+                if result_path is not None:
+                    console.print(f"Result JSON: {result_path}")
+            else:
+                _print_scrape_concise(result)
             if stdout_markdown and result.document is not None:
                 console.print(result.document.markdown)
         raise typer.Exit(code=0 if result.success else 2)
@@ -165,22 +208,29 @@ def crawl(
     output_dir: Path | None = typer.Option(None, "--output-dir", file_okay=False, dir_okay=True, help="Output directory root."),
     browser: str = typer.Option("auto", "--browser", help="Browser mode: auto, on, off."),
     auto_interact: str = typer.Option("auto", "--auto-interact", help="Auto interaction mode: auto, on, off."),
+    output_profile: str = typer.Option("auto", "--output-profile", help="Output profile: auto, minimal, verbose."),
+    verbose: bool = typer.Option(False, "--verbose", help="Shortcut for --output-profile verbose."),
     timeout_seconds: float | None = typer.Option(None, "--timeout-seconds", min=1.0, help="HTTP timeout override."),
     rate_limit: float | None = typer.Option(None, "--rate-limit", min=0.0, help="Requests per second override."),
     json_output: bool = typer.Option(False, "--json", help="Emit machine-readable JSON summary."),
 ) -> None:
     browser = browser.lower().strip()
     auto_interact = auto_interact.lower().strip()
+    output_profile = output_profile.lower().strip()
     if browser not in {"auto", "on", "off"}:
         raise typer.BadParameter("--browser must be one of: auto, on, off")
     if auto_interact not in {"auto", "on", "off"}:
         raise typer.BadParameter("--auto-interact must be one of: auto, on, off")
+    if output_profile not in {"auto", "minimal", "verbose"}:
+        raise typer.BadParameter("--output-profile must be one of: auto, minimal, verbose")
 
     cfg, _ = _build_config(
         config_path=config,
         output_dir=output_dir,
         browser_mode=browser,
         auto_interact_mode=auto_interact,
+        output_profile_mode=output_profile,
+        verbose_mode=verbose,
         timeout_seconds=timeout_seconds,
         rate_limit=rate_limit,
         max_pages=max_pages,
@@ -191,23 +241,28 @@ def crawl(
         manifest_path = runtime.artifacts.save_json_document("crawl_manifest.json", manifest.model_dump(mode="json"))
         if json_output:
             payload = manifest.model_dump(mode="json")
-            payload["manifest_path"] = str(manifest_path)
+            if manifest_path is not None:
+                payload["manifest_path"] = str(manifest_path)
             _emit_json(payload)
         else:
-            summary = Table(title="Crawl summary")
-            summary.add_column("URL")
-            summary.add_column("Success")
-            summary.add_column("Mode")
-            summary.add_column("Markdown")
-            for entry in manifest.entries:
-                summary.add_row(
-                    entry.url,
-                    "yes" if entry.success else "no",
-                    entry.extraction_mode.value if entry.extraction_mode else "",
-                    entry.markdown_path or "",
-                )
-            console.print(summary)
-            console.print(f"Manifest: {manifest_path}")
+            if verbose:
+                summary = Table(title="Crawl summary")
+                summary.add_column("URL")
+                summary.add_column("Success")
+                summary.add_column("Mode")
+                summary.add_column("Markdown")
+                for entry in manifest.entries:
+                    summary.add_row(
+                        entry.url,
+                        "yes" if entry.success else "no",
+                        entry.extraction_mode.value if entry.extraction_mode else "",
+                        entry.markdown_path or "",
+                    )
+                console.print(summary)
+                if manifest_path is not None:
+                    console.print(f"Manifest: {manifest_path}")
+            else:
+                _print_crawl_concise(manifest)
         failed = any(not entry.success for entry in manifest.entries)
         raise typer.Exit(code=2 if failed else 0)
     finally:
@@ -222,22 +277,29 @@ def inspect(
     output_dir: Path | None = typer.Option(None, "--output-dir", file_okay=False, dir_okay=True, help="Output directory root."),
     browser: str = typer.Option("auto", "--browser", help="Browser mode: auto, on, off."),
     auto_interact: str = typer.Option("auto", "--auto-interact", help="Auto interaction mode: auto, on, off."),
+    output_profile: str = typer.Option("auto", "--output-profile", help="Output profile: auto, minimal, verbose."),
+    verbose: bool = typer.Option(False, "--verbose", help="Shortcut for --output-profile verbose."),
     timeout_seconds: float | None = typer.Option(None, "--timeout-seconds", min=1.0, help="HTTP timeout override."),
     rate_limit: float | None = typer.Option(None, "--rate-limit", min=0.0, help="Requests per second override."),
     json_output: bool = typer.Option(False, "--json", help="Emit machine-readable JSON summary."),
 ) -> None:
     browser = browser.lower().strip()
     auto_interact = auto_interact.lower().strip()
+    output_profile = output_profile.lower().strip()
     if browser not in {"auto", "on", "off"}:
         raise typer.BadParameter("--browser must be one of: auto, on, off")
     if auto_interact not in {"auto", "on", "off"}:
         raise typer.BadParameter("--auto-interact must be one of: auto, on, off")
+    if output_profile not in {"auto", "minimal", "verbose"}:
+        raise typer.BadParameter("--output-profile must be one of: auto, minimal, verbose")
 
     cfg, _ = _build_config(
         config_path=config,
         output_dir=output_dir,
         browser_mode=browser,
         auto_interact_mode=auto_interact,
+        output_profile_mode=output_profile,
+        verbose_mode=verbose,
         timeout_seconds=timeout_seconds,
         rate_limit=rate_limit,
         max_pages=None,
@@ -248,7 +310,8 @@ def inspect(
         bundle_path = runtime.artifacts.save_json_document("discovery_bundle.json", bundle.model_dump(mode="json"))
         if json_output:
             payload = bundle.model_dump(mode="json")
-            payload["bundle_path"] = str(bundle_path)
+            if bundle_path is not None:
+                payload["bundle_path"] = str(bundle_path)
             _emit_json(payload)
             return
 
@@ -262,28 +325,37 @@ def inspect(
         overview.add_row("Signals", ", ".join(bundle.signals))
         overview.add_row("Robots", bundle.robots.url if bundle.robots else "")
         overview.add_row("LLMS hits", str(len(bundle.llms_snapshots)))
-        overview.add_row("Discovery JSON", str(bundle_path))
+        overview.add_row("Discovery JSON", str(bundle_path) if bundle_path is not None else "")
         console.print(overview)
 
-        if bundle.framework_hint.evidence:
+        if verbose and bundle.framework_hint.evidence:
             console.print(f"Framework evidence: {', '.join(bundle.framework_hint.evidence)}")
 
         candidates = Table(title="Ranked candidate sources")
-        candidates.add_column("#", justify="right")
-        candidates.add_column("Kind")
-        candidates.add_column("Confidence", justify="right")
-        candidates.add_column("Cost", justify="right")
-        candidates.add_column("URL")
-        candidates.add_column("Evidence")
-        for idx, candidate in enumerate(bundle.candidates, start=1):
-            candidates.add_row(
-                str(idx),
-                candidate.kind.value,
-                f"{candidate.confidence:.2f}",
-                str(candidate.cost),
-                candidate.url or "",
-                ", ".join(candidate.evidence[:4]),
-            )
+        if verbose:
+            candidates.add_column("#", justify="right")
+            candidates.add_column("Kind")
+            candidates.add_column("Confidence", justify="right")
+            candidates.add_column("Cost", justify="right")
+            candidates.add_column("URL")
+            candidates.add_column("Evidence")
+            for idx, candidate in enumerate(bundle.candidates, start=1):
+                candidates.add_row(
+                    str(idx),
+                    candidate.kind.value,
+                    f"{candidate.confidence:.2f}",
+                    str(candidate.cost),
+                    candidate.url or "",
+                    ", ".join(candidate.evidence[:4]),
+                )
+        else:
+            candidates.add_column("#", justify="right")
+            candidates.add_column("URL")
+            for idx, candidate in enumerate(bundle.candidates, start=1):
+                candidates.add_row(
+                    str(idx),
+                    candidate.url or "",
+                )
         console.print(candidates)
     finally:
         runtime.close()

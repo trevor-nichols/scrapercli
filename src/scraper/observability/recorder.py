@@ -7,11 +7,14 @@ from ..models import DecisionEvent
 
 
 class DecisionRecorder:
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path | None) -> None:
         self.path = path
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        if self.path is not None:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
 
     def record(self, stage: str, url: str, event: str, details: dict[str, Any] | None = None, level: str = "info") -> None:
+        if self.path is None:
+            return
         payload = DecisionEvent(stage=stage, url=url, event=event, details=details or {}, level=level)
         with self.path.open("a", encoding="utf-8") as handle:
             handle.write(payload.model_dump_json())

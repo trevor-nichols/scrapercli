@@ -14,8 +14,9 @@ from .extractors.structured import StructuredDataExtractor
 from .html.markdown import MarkdownDocumentBuilder, MarkdownRenderer
 from .html.repetition import RepetitionIndex
 from .http.client import HttpClient
+from .models import OutputProfile
 from .observability.recorder import DecisionRecorder
-from .observability.store import ArtifactStore
+from .observability.store import ArtifactPersistencePolicy, ArtifactStore
 from .pipeline.crawler import Crawler
 from .pipeline.orchestrator import ScrapeOrchestrator
 from .pipeline.quality import QualityAssessor
@@ -38,12 +39,21 @@ class Runtime:
 
 class RuntimeFactory:
     @staticmethod
+    def _artifact_policy(config: ScraperConfig) -> ArtifactPersistencePolicy:
+        if config.output.profile == OutputProfile.VERBOSE:
+            return ArtifactPersistencePolicy.verbose(
+                save_raw_sources=config.output.raw_sources,
+                save_metadata_sidecar=config.output.metadata_sidecar,
+            )
+        return ArtifactPersistencePolicy.minimal()
+
+    @staticmethod
     def build(config: ScraperConfig, *, output_root: Path | None = None) -> Runtime:
         if output_root is not None:
             config = config.model_copy(deep=True)
             config.output.root_dir = output_root
 
-        artifacts = ArtifactStore(config.output.root_dir)
+        artifacts = ArtifactStore(config.output.root_dir, policy=RuntimeFactory._artifact_policy(config))
         recorder = DecisionRecorder(artifacts.decisions_path)
         http_client = HttpClient(config, artifacts, recorder)
         repetition_index = RepetitionIndex(artifacts.repetition_store_path)

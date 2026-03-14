@@ -23,6 +23,7 @@ browser:
   headless: true
 output:
   root_dir: output
+  profile: minimal
   frontmatter: true
   metadata_sidecar: true
   raw_sources: true

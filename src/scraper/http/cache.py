@@ -5,12 +5,15 @@ from pathlib import Path
 
 
 class ConditionalRequestCache:
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path | None) -> None:
         self.path = path
         self.data: dict[str, dict[str, str]] = {}
         self._load()
 
     def _load(self) -> None:
+        if self.path is None:
+            self.data = {}
+            return
         if self.path.exists():
             try:
                 payload = json.loads(self.path.read_text(encoding="utf-8"))
@@ -41,5 +44,7 @@ class ConditionalRequestCache:
         self._save()
 
     def _save(self) -> None:
+        if self.path is None:
+            return
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(json.dumps(self.data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
